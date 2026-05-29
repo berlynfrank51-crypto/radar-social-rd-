@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Social RD - Sistema de Control Vial IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #060913;
+            --panel-glass: rgba(10, 15, 30, 0.75);
+            --border-glass: rgba(0, 229, 255, 0.18);
+            --electric-blue: #00e5ff;
+            --neon-glow: rgba(0, 229, 255, 0.4);
+            --text-main: #f0f4f8;
+            --text-muted: #6c7a9c;
+            --alert-red: #ff3838;
+            --warning-amber: #ffb300;
+            --success-green: #00ff66;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body, html { width: 100%; height: 100%; background-color: var(--bg-dark); color: var(--text-main); overflow: hidden; }
+        
+        .glass-panel { background: var(--panel-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--border-glass); border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
+        
+        /* LOGIN CINEMÁTICO */
+        #login-screen { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 999; display: flex; justify-content: center; align-items: center; background: linear-gradient(rgba(6, 9, 19, 0.85), rgba(6, 9, 19, 0.98)), url('https://images.unsplash.com/photo-1518156677180-95a2893f3e9f?q=80&w=1920') no-repeat center center/cover; transition: opacity 0.6s ease, visibility 0.6s; }
+        #login-screen.hidden { opacity: 0; visibility: hidden; }
+        .login-card { width: 92%; max-width: 400px; padding: 40px 30px; text-align: center; }
+        .brand-logo { font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: 3px; color: #fff; text-shadow: 0 0 12px var(--neon-glow); margin-bottom: 5px; }
+        .brand-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 4px; color: var(--electric-blue); margin-bottom: 35px; }
+        .input-group { margin-bottom: 22px; text-align: left; }
+        .input-group label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 8px; font-weight: 600; }
+        .input-field { width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 10px; color: #fff; font-size: 14px; transition: 0.3s; }
+        .input-field:focus { border-color: var(--electric-blue); background: rgba(0, 229, 255, 0.05); outline: none; }
+        .btn-prime { width: 100%; padding: 16px; background: linear-gradient(135deg, #00b0ff, #00e5ff); border: none; border-radius: 10px; color: #060913; font-weight: 700; font-size: 13px; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4); font-family: 'Orbitron', sans-serif; transition: 0.3s; }
+        .btn-prime:active { transform: scale(0.98); }
+
+        /* INTERFAZ PRINCIPAL MOVIL OPTIMIZADA */
+        #dashboard-layout { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr; width: 100%; height: 100%; }
+        
+        .control-panel { background: rgba(6, 9, 19, 0.95); padding: 16px; display: flex; flex-direction: column; gap: 14px; z-index: 10; max-height: 48%; overflow-y: auto; border-bottom: 1px solid var(--border-glass); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; }
+        .panel-header h2 { font-size: 18px; font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+        .panel-header p { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; }
+        
+        .kpi-container { display: flex; gap: 10px; }
+        .kpi-card { flex: 1; padding: 12px; display: flex; align-items: center; gap: 10px; }
+        .kpi-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(0, 229, 255, 0.1); display: flex; align-items: center; justify-content: center; color: var(--electric-blue); font-size: 16px; }
+        .kpi-info h4 { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-info p { font-size: 15px; font-weight: 700; color: #fff; }
+
+        /* SECCIÓN DE SIMULACIÓN EN VIVO */
+        .interactive-section { background: rgba(0, 229, 255, 0.03); padding: 12px; border-radius: 12px; border: 1px dashed rgba(0, 229, 255, 0.3); }
+        .sim-title { font-size: 11px; text-transform: uppercase; color: var(--electric-blue); font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .btn-action-group { display: flex; gap: 8px; }
+        .btn-action { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 11px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; }
+        .btn-report { background: linear-gradient(135deg, #ff3838, #ff6b6b); box-shadow: 0 4px 12px rgba(255, 56, 56, 0.2); }
+        .btn-clear { background: linear-gradient(135deg, #2c3e50, #34495e); color: var(--text-main); }
+
+        /* STREAM DE ALERTAS */
+        .alerts-stream { display: flex; flex-direction: column; gap: 8px; }
+        .stream-title { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+        .alert-item { padding: 12px; border-left: 4px solid var(--alert-red); background: rgba(255, 56, 56, 0.03); transition: 0.4s; }
+        .alert-item.warning { border-left-color: var(--warning-amber); background: rgba(255, 179, 0, 0.03); }
+        .alert-meta { display: flex; justify-content: space-between; font-size: 10px; }
+        .alert-tag { font-weight: 700; color: var(--alert-red); }
+        .alert-item.warning .alert-tag { color: var(--warning-amber); }
+        .alert-desc { font-size: 13px; color: #fff; font-weight: 600; margin-top: 3px; }
+        .alert-loc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+        /* MAPA Y CAPAS */
+        .map-wrapper { position: relative; width: 100%; height: 100%; }
+        #map-container { width: 100%; height: 100%; background: #04060a; }
+        
+        .map-overlay-stats { position: absolute; bottom: 16px; left: 12px; right: 12px; padding: 12px 16px; display: flex; justify-content: space-between; z-index: 5; }
+        .stat-node { display: flex; flex-direction: column; }
+        .stat-node span:first-child { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+        .stat-node span:last-child { font-size: 14px; font-weight: 700; color: var(--electric-blue); font-family: 'Orbitron', sans-serif; }
+        
+        .pulse-dot { width: 8px; height: 8px; background-color: var(--success-green); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.6); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 255, 102, 0); } 100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(0, 255, 102, 0); } }
+    </style>
+</head>
+<body>
+
+    <section id="login-screen">
+        <div class="login-card glass-panel">
+            <div class="brand-logo">RADAR SOCIAL RD</div>
+            <div class="brand-sub">Smart Mobility IA</div>
+            <form id="login-form" onsubmit="accessDashboard(event)">
+                <div class="input-group">
+                    <label>ID de Operador Central</label>
+                    <input type="text" class="input-field" value="OP-SANTO-DOMINGO" required>
+                </div>
+                <div class="input-group">
+                    <label>Clave de Enlace Encriptada</label>
+                    <input type="password" class="input-field" value="******" required>
+                </div>
+                <button type="submit" class="btn-prime">Desplegar Consola Central</button>
+            </form>
+            <div style="margin-top: 25px; font-size: 11px; color: var(--text-muted); line-height: 1.6;">
+                <strong>Sistema de Monitoreo Urbano Avanzado</strong><br>
+                <span style="color: var(--electric-blue)">Visualizador Móvil de Emergencias</span><br>Distrito Nacional, RD.
+            </div>
+        </div>
+    </section>
+
+    <main id="dashboard-layout">
+        <section class="control-panel">
+            <div class="panel-header">
+                <h2>RADAR CENTRAL</h2>
+                <p><span class="pulse-dot"></span>NÚCLEO IA ACTIVO</p>
+            </div>
+            
+            <div class="kpi-container">
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-icon"><i class="fa-solid fa-brain"></i></div>
+                    <div class="kpi-info"><h4>Precisión IA</h4><p id="kpi-ia">94.2%</p></div>
+                </div>
+                <div class="kpi-card glass-panel">
+                    <div class="kpi-icon" id="kpi-risk-icon" style="color: var(--success-green); background: rgba(0,255,102,0.1);"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="kpi-info"><h4>Riesgo General</h4><p id="kpi-risk-text" style="color: var(--success-green);">Bajo</p></div>
+                </div>
+            </div>
+
+            <div class="interactive-section">
+                <div class="sim-title"><i class="fa-solid fa-flask"></i> Consola de Prueba Simulada</div>
+                <div class="btn-action-group">
+                    <button class="btn-action btn-report" onclick="simulateAccident()"><i class="fa-solid fa-triangle-exclamation"></i> Forzar Choque</button>
+                    <button class="btn-action btn-clear" onclick="clearSimulation()"><i class="fa-solid fa-rotate"></i> Reset</button>
+                </div>
+            </div>
+
+            <div class="alerts-stream">
+                <div class="stream-title">Flujo de Incidentes Actuales</div>
+                <div id="alerts-dynamic-container">
+                    <div class="alert-item glass-panel warning" id="default-alert">
+                        <div class="alert-meta"><span class="alert-tag" style="color: var(--warning-amber)">FLUJO CRÍTICO</span><span>En tiempo real</span></div>
+                        <div class="alert-desc">Congestionamiento Excesivo detectado</div>
+                        <div class="alert-loc">Av. John F. Kennedy con Av. Winston Churchill</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="map-wrapper">
+            <div class="map-overlay-stats glass-panel">
+                <div class="stat-node"><span>Sensores IA</span><span id="stat-sensors">1,420</span></div>
+                <div class="stat-node"><span>Cámaras</span><span>384 Flow</span></div>
+                <div class="stat-node"><span>Región</span><span>SDQ DN</span></div>
+            </div>
+            <div id="map-container"></div>
+        </section>
+    </main>
+
+    <script>
+        let map;
+        let activeMarkers = [];
+
+        function accessDashboard(event) { 
+            event.preventDefault(); 
+            document.getElementById('login-screen').classList.add('hidden'); 
+        }
+
+        // CARGA AUTOMÁTICA DEL MAPA OSCURO DE SANTO DOMINGO
+        function initMap() {
+            const centerSD = { lat: 18.475, lng: -69.932 };
+            const mapOptions = {
+                zoom: 13, 
+                center: centerSD, 
+                mapTypeId: 'roadmap', 
+                disableDefaultUI: true, 
+                zoomControl: false,
+                styles: [
+                    { "elementType": "geometry", "stylers": [{ "color": "#060913" }] },
+                    { "elementType": "labels.text.fill", "stylers": [{ "color": "#6c7a9c" }] },
+                    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#060913" }] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#16223f" }] },
+                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#1d3557" }] },
+                    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#02040a" }] }
+                ]
+            };
+            map = new google.maps.Map(document.getElementById("map-container"), mapOptions);
+            clearSimulation();
+        }
+
+        // ACCIÓN: SIMULAR EVENTO EN VIVO
+        function simulateAccident() {
+            document.getElementById('kpi-ia').innerText = "98.7%";
+            document.getElementById('kpi-risk-text').innerText = "CRÍTICO";
+            document.getElementById('kpi-risk-text').style.color = "var(--alert-red)";
+            document.getElementById('kpi-risk-icon').style.color = "var(--alert-red)";
+            document.getElementById('kpi-risk-icon').style.background = "rgba(255,56,56,0.15)";
+            document.getElementById('stat-sensors').innerText = "1,421";
+
+            const stream = document.getElementById('alerts-dynamic-container');
+            stream.innerHTML = `
+                <div class="alert-item glass-panel" style="animation: bounce 0.5s ease-out">
+                    <div class="alert-meta"><span class="alert-tag">ALERTA DE ACCIDENTE</span><span>¡AHORA MISMO!</span></div>
+                    <div class="alert-desc">Colisión de 2 vehículos (Detección de Impacto IA)</div>
+                    <div class="alert-loc">Av. 27 de Febrero esq. Av. Máximo Gómez</div>
+                </div>
+            ` + stream.innerHTML;
+
+            const accidentPos = { lat: 18.4795, lng: -69.9242 };
+            const marker = new google.maps.Marker({
+                position: accidentPos,
+                map: map,
+                animation: google.maps.Animation.BOUNCE,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: "#ff3838",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
+                }
+            });
+            activeMarkers.push(marker);
+            map.panTo(accidentPos);
+        }
+
+        // RESETEAR SIMULACIÓN
+        function clearSimulation() {
+            activeMarkers.forEach(m => m.setMap(null));
+            activeMarkers = [];
+
+            document.getElementById('kpi-ia').innerText = "94.2%";
+            document.getElementById('kpi-risk-text').innerText = "Bajo";
+            document.getElementById('kpi-risk-text').style.color = "var(--success-green)";
+            document.getElementById('kpi-risk-icon').style.color = "var(--success-green)";
+            document.getElementById('kpi-risk-icon').style.background = "rgba(0,255,102,0.1)";
+            document.getElementById('stat-sensors').innerText = "1,420";
+            
+            document.getElementById('alerts-dynamic-container').innerHTML = `
+                <div class="alert-item glass-panel warning">
+                    <div class="alert-meta"><span class="alert-tag" style="color: var(--warning-amber)">FLUJO CRÍTICO</span><span>En tiempo real</span></div>
+                    <div class="alert-desc">Congestionamiento Excesivo detectado</div>
+                    <div class="alert-loc">Av. John F. Kennedy con Av. Winston Churchill</div>
+                </div>
+            `;
+
+            if(map) {
+                const markerBase = new google.maps.Marker({
+                    position: { lat: 18.4760, lng: -69.9395 },
+                    map: map,
+                    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6, fillColor: "#00e5ff", fillOpacity: 0.8, strokeColor: "#fff", strokeWeight: 1 }
+                });
+                activeMarkers.push(markerBase);
+                map.setCenter({ lat: 18.475, lng: -69.932 });
+            }
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+</body>
+</html>
